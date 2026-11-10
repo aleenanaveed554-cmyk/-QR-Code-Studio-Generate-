@@ -1,450 +1,345 @@
 import io
-import json
-from datetime import datetime
-
 import qrcode
 import streamlit as st
 from PIL import Image, ImageDraw
-
 
 # =========================================================
 # PAGE CONFIG
 # =========================================================
 
 st.set_page_config(
-    page_title="QR Code Studio",
-    page_icon="▦",
+    page_title="QR Studio",
+    page_icon="🔳",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed"
 )
 
-
 # =========================================================
-# CUSTOM CSS
+# PREMIUM DARK CSS
 # =========================================================
 
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+st.markdown("""
+<style>
 
-    * {
-        font-family: 'DM Sans', sans-serif;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-    .stApp {
-        background:
-            radial-gradient(circle at top left, rgba(99,102,241,0.10), transparent 30%),
-            radial-gradient(circle at top right, rgba(14,165,233,0.08), transparent 28%),
-            #f7f9fc;
-    }
+html, body, [class*="css"] {
+    font-family: 'Inter', sans-serif;
+}
 
-    [data-testid="stHeader"] {
-        background: transparent;
-    }
+.stApp {
+    background:
+        radial-gradient(circle at top left, #18212f 0%, #090b0f 38%, #050607 100%);
+    color: #ffffff;
+}
 
-    [data-testid="stSidebar"] {
-        background: #ffffff;
-        border-right: 1px solid #e8ecf3;
-    }
+/* Main container */
+.block-container {
+    max-width: 1250px;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
 
-    .hero {
-        padding: 28px 10px 18px 10px;
-    }
+/* Header */
+.hero {
+    text-align: center;
+    padding: 20px 10px 30px 10px;
+}
 
-    .brand {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-    }
+.hero h1 {
+    font-size: 46px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+    color: #ffffff;
+}
 
-    .brand-icon {
-        width: 54px;
-        height: 54px;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, #111827, #4f46e5);
-        color: white;
-        font-size: 27px;
-        font-weight: 700;
-        box-shadow: 0 10px 30px rgba(79,70,229,0.22);
-    }
+.hero h1 span {
+    color: #8b5cf6;
+}
 
-    .brand-title {
-        font-size: 34px;
-        font-weight: 700;
-        color: #111827;
-        line-height: 1.1;
-    }
+.hero p {
+    color: #a7adb8;
+    font-size: 16px;
+    margin-top: 0;
+}
 
-    .brand-subtitle {
-        color: #667085;
-        font-size: 15px;
-        margin-top: 5px;
-    }
+/* Cards */
+.card {
+    background: rgba(17, 20, 27, 0.92);
+    border: 1px solid #252a34;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.28);
+}
 
-    .section-title {
-        color: #111827;
-        font-size: 20px;
-        font-weight: 700;
-        margin-bottom: 4px;
-    }
+.card-title {
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
 
-    .section-subtitle {
-        color: #667085;
-        font-size: 13px;
-        margin-bottom: 18px;
-    }
+.small-text {
+    color: #8f96a3;
+    font-size: 13px;
+}
 
-    .card {
-        background: rgba(255,255,255,0.95);
-        border: 1px solid #e8ecf3;
-        border-radius: 22px;
-        padding: 24px;
-        box-shadow: 0 10px 35px rgba(15,23,42,0.05);
-        margin-bottom: 18px;
-    }
+/* Labels */
+label, .stMarkdown p {
+    color: #ffffff !important;
+}
 
-    .preview-card {
-        min-height: 580px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-    }
+/* Inputs */
+div[data-baseweb="input"] {
+    background: #11141a !important;
+    border: 1px solid #303641 !important;
+    border-radius: 12px !important;
+}
 
-    .preview-label {
-        font-size: 13px;
-        color: #667085;
-        margin-bottom: 18px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-    }
+div[data-baseweb="input"] input {
+    color: #ffffff !important;
+    background: transparent !important;
+}
 
-    .qr-box {
-        background: white;
-        border-radius: 22px;
-        padding: 20px;
-        border: 1px solid #e8ecf3;
-        box-shadow: 0 15px 45px rgba(15,23,42,0.08);
-    }
+textarea {
+    color: #ffffff !important;
+    background: #11141a !important;
+    border: 1px solid #303641 !important;
+    border-radius: 12px !important;
+}
 
-    .empty-preview {
-        width: 310px;
-        height: 310px;
-        border: 2px dashed #d8deea;
-        border-radius: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        color: #98a2b3;
-        background: #fafbfc;
-        padding: 30px;
-    }
+/* Selectbox */
+div[data-baseweb="select"] > div {
+    background: #11141a !important;
+    border: 1px solid #303641 !important;
+    color: #ffffff !important;
+    border-radius: 12px !important;
+}
 
-    .empty-preview-icon {
-        font-size: 50px;
-        margin-bottom: 10px;
-    }
+div[data-baseweb="select"] span {
+    color: #ffffff !important;
+}
 
-    .feature-card {
-        background: white;
-        border: 1px solid #e8ecf3;
-        border-radius: 18px;
-        padding: 18px;
-        height: 100%;
-        box-shadow: 0 8px 25px rgba(15,23,42,0.035);
-    }
+/* Buttons */
+.stButton > button {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid #343945;
+    background: #171a21;
+    color: #ffffff;
+    font-weight: 700;
+    padding: 11px 18px;
+    transition: 0.2s ease;
+}
 
-    .feature-icon {
-        font-size: 24px;
-        margin-bottom: 8px;
-    }
+.stButton > button:hover {
+    border-color: #8b5cf6;
+    background: #211b31;
+    color: #ffffff;
+}
 
-    .feature-title {
-        color: #111827;
-        font-weight: 700;
-        font-size: 14px;
-    }
+/* Primary button */
+button[kind="primary"] {
+    background: linear-gradient(135deg, #7c3aed, #4f46e5) !important;
+    border: none !important;
+}
 
-    .feature-text {
-        color: #667085;
-        font-size: 12px;
-        margin-top: 4px;
-    }
+/* Download button */
+.stDownloadButton > button {
+    width: 100%;
+    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    font-weight: 700;
+}
 
-    .history-card {
-        background: white;
-        border: 1px solid #e8ecf3;
-        border-radius: 18px;
-        padding: 16px 18px;
-        margin-bottom: 10px;
-    }
+/* File uploader */
+section[data-testid="stFileUploaderDropzone"] {
+    background: #11141a !important;
+    border: 1px dashed #3a3f4a !important;
+    border-radius: 14px !important;
+}
 
-    .history-type {
-        font-weight: 700;
-        color: #111827;
-        font-size: 14px;
-    }
+/* Radio */
+div[role="radiogroup"] label {
+    color: #ffffff !important;
+}
 
-    .history-content {
-        color: #667085;
-        font-size: 12px;
-        margin-top: 4px;
-    }
+/* Color input */
+input[type="color"] {
+    background: #11141a;
+    border: 1px solid #303641;
+    border-radius: 8px;
+}
 
-    .history-time {
-        color: #98a2b3;
-        font-size: 11px;
-        margin-top: 4px;
-    }
+/* QR preview */
+.preview-box {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 28px;
+    min-height: 390px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 20px 70px rgba(0,0,0,0.35);
+}
 
-    div.stButton > button {
-        border-radius: 12px;
-        font-weight: 700;
-        min-height: 44px;
-    }
+.preview-caption {
+    text-align: center;
+    color: #8f96a3;
+    margin-top: 15px;
+    font-size: 13px;
+}
 
-    div.stDownloadButton > button {
-        border-radius: 12px;
-        font-weight: 700;
-        min-height: 44px;
-    }
+/* Divider */
+.divider {
+    height: 1px;
+    background: #252a34;
+    margin: 20px 0;
+}
 
-    .generate-btn button {
-        background: linear-gradient(135deg, #111827, #4f46e5) !important;
-        color: white !important;
-        border: none !important;
-        font-size: 15px !important;
-        min-height: 50px !important;
-        box-shadow: 0 12px 28px rgba(79,70,229,0.20);
-    }
+/* Footer */
+.footer {
+    text-align: center;
+    color: #646b78;
+    margin-top: 40px;
+    font-size: 13px;
+}
 
-    .generate-btn button:hover {
-        transform: translateY(-1px);
-    }
-
-    .stat {
-        background: white;
-        border: 1px solid #e8ecf3;
-        border-radius: 18px;
-        padding: 16px;
-        text-align: center;
-    }
-
-    .stat-number {
-        font-size: 22px;
-        font-weight: 700;
-        color: #111827;
-    }
-
-    .stat-label {
-        font-size: 11px;
-        color: #667085;
-        margin-top: 3px;
-    }
-
-    #MainMenu {
-        visibility: hidden;
-    }
-
-    footer {
-        visibility: hidden;
-    }
-
-    @media (max-width: 768px) {
-        .brand-title {
-            font-size: 27px;
-        }
-
-        .preview-card {
-            min-height: 450px;
-        }
-
-        .empty-preview {
-            width: 250px;
-            height: 250px;
-        }
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
+</style>
+""", unsafe_allow_html=True)
 
 
 # =========================================================
-# SESSION STATE
+# FUNCTIONS
 # =========================================================
 
-if "qr_image" not in st.session_state:
-    st.session_state.qr_image = None
+def build_qr_data(qr_type, values):
 
-if "qr_content" not in st.session_state:
-    st.session_state.qr_content = ""
+    if qr_type == "Website / URL":
+        return values.get("url", "").strip()
 
-if "qr_type" not in st.session_state:
-    st.session_state.qr_type = ""
+    elif qr_type == "Text":
+        return values.get("text", "").strip()
 
-if "history" not in st.session_state:
-    st.session_state.history = []
+    elif qr_type == "Phone":
+        phone = values.get("phone", "").strip()
+        return f"tel:{phone}"
 
+    elif qr_type == "Email":
+        email = values.get("email", "").strip()
+        subject = values.get("subject", "").strip()
+        message = values.get("message", "").strip()
 
-# =========================================================
-# HELPERS
-# =========================================================
-
-def make_wifi(ssid, password, security, hidden=False):
-    security = security.upper()
-
-    if security == "NONE":
-        return f"WIFI:T:nopass;S:{ssid};H:{str(hidden).lower()};;"
-
-    return (
-        f"WIFI:T:{security};"
-        f"S:{ssid};"
-        f"P:{password};"
-        f"H:{str(hidden).lower()};;"
-    )
-
-
-def make_vcard(name, phone, email, organization, website):
-    return (
-        "BEGIN:VCARD\n"
-        "VERSION:3.0\n"
-        f"FN:{name}\n"
-        f"ORG:{organization}\n"
-        f"TEL:{phone}\n"
-        f"EMAIL:{email}\n"
-        f"URL:{website}\n"
-        "END:VCARD"
-    )
-
-
-def make_whatsapp(phone, message):
-    phone = phone.strip().replace(" ", "").replace("-", "")
-
-    if message.strip():
-        return f"https://wa.me/{phone}?text={message.strip().replace(' ', '%20')}"
-
-    return f"https://wa.me/{phone}"
-
-
-def build_content(qr_type, values):
-    if qr_type == "Text":
-        return values["text"].strip()
-
-    if qr_type == "Website URL":
-        url = values["url"].strip()
-
-        if url and not url.startswith(("http://", "https://")):
-            url = "https://" + url
-
-        return url
-
-    if qr_type == "Phone Number":
-        return f"tel:{values['phone'].strip()}"
-
-    if qr_type == "Email":
         return (
-            f"mailto:{values['email'].strip()}"
-            f"?subject={values['subject'].strip()}"
-            f"&body={values['message'].strip()}"
+            f"mailto:{email}"
+            f"?subject={subject}"
+            f"&body={message}"
         )
 
-    if qr_type == "Wi-Fi":
-        return make_wifi(
-            values["ssid"],
-            values["wifi_password"],
-            values["security"],
-            values["hidden"],
-        )
+    elif qr_type == "Wi-Fi":
+        ssid = values.get("ssid", "").strip()
+        password = values.get("wifi_password", "").strip()
+        security = values.get("security", "WPA/WPA2")
 
-    if qr_type == "Contact / vCard":
-        return make_vcard(
-            values["name"],
-            values["contact_phone"],
-            values["contact_email"],
-            values["organization"],
-            values["website"],
-        )
+        return f"WIFI:T:{security};S:{ssid};P:{password};;"
 
-    if qr_type == "WhatsApp":
-        return make_whatsapp(
-            values["whatsapp_phone"],
-            values["whatsapp_message"],
+    elif qr_type == "WhatsApp":
+        number = values.get("whatsapp", "").strip()
+        message = values.get("whatsapp_message", "").strip()
+
+        if message:
+            return f"https://wa.me/{number}?text={message}"
+
+        return f"https://wa.me/{number}"
+
+    elif qr_type == "Contact":
+        name = values.get("name", "").strip()
+        phone = values.get("contact_phone", "").strip()
+        email = values.get("contact_email", "").strip()
+        company = values.get("company", "").strip()
+
+        return (
+            "BEGIN:VCARD\n"
+            "VERSION:3.0\n"
+            f"FN:{name}\n"
+            f"ORG:{company}\n"
+            f"TEL:{phone}\n"
+            f"EMAIL:{email}\n"
+            "END:VCARD"
         )
 
     return ""
 
 
-def generate_qr(content, fill_color, back_color, box_size, border):
+def create_qr(data, qr_color, logo=None):
+
     qr = qrcode.QRCode(
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_H,
-        box_size=box_size,
-        border=border,
+        box_size=12,
+        border=4
     )
 
-    qr.add_data(content)
+    qr.add_data(data)
     qr.make(fit=True)
 
     img = qr.make_image(
-        fill_color=fill_color,
-        back_color=back_color,
-    ).convert("RGBA")
+        fill_color=qr_color,
+        back_color="white"
+    ).convert("RGB")
+
+    # Add logo
+    if logo is not None:
+
+        logo = logo.convert("RGBA")
+
+        max_logo_size = int(img.size[0] * 0.22)
+
+        logo.thumbnail(
+            (max_logo_size, max_logo_size),
+            Image.Resampling.LANCZOS
+        )
+
+        # White background behind logo
+        padding = 10
+
+        logo_bg = Image.new(
+            "RGBA",
+            (
+                logo.size[0] + padding * 2,
+                logo.size[1] + padding * 2
+            ),
+            "white"
+        )
+
+        logo_bg.paste(
+            logo,
+            (padding, padding),
+            logo
+        )
+
+        position = (
+            (img.size[0] - logo_bg.size[0]) // 2,
+            (img.size[1] - logo_bg.size[1]) // 2
+        )
+
+        img.paste(
+            logo_bg.convert("RGB"),
+            position
+        )
 
     return img
 
 
-def add_logo(qr_img, logo_file):
-    if logo_file is None:
-        return qr_img
-
-    try:
-        logo = Image.open(logo_file).convert("RGBA")
-
-        max_size = int(min(qr_img.size) * 0.22)
-        logo.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
-
-        canvas_size = logo.size[0] + 22, logo.size[1] + 22
-
-        canvas = Image.new(
-            "RGBA",
-            canvas_size,
-            (255, 255, 255, 255),
-        )
-
-        draw = ImageDraw.Draw(canvas)
-
-        draw.rounded_rectangle(
-            (0, 0, canvas_size[0] - 1, canvas_size[1] - 1),
-            radius=12,
-            fill=(255, 255, 255, 255),
-        )
-
-        x = (canvas.width - logo.width) // 2
-        y = (canvas.height - logo.height) // 2
-
-        canvas.alpha_composite(logo, (x, y))
-
-        center_x = (qr_img.width - canvas.width) // 2
-        center_y = (qr_img.height - canvas.height) // 2
-
-        qr_img.alpha_composite(canvas, (center_x, center_y))
-
-        return qr_img
-
-    except Exception:
-        return qr_img
-
-
 def image_to_bytes(image):
+
     buffer = io.BytesIO()
-    image.convert("RGB").save(buffer, format="PNG")
+    image.save(buffer, format="PNG")
+    buffer.seek(0)
+
     return buffer.getvalue()
 
 
@@ -452,349 +347,368 @@ def image_to_bytes(image):
 # HEADER
 # =========================================================
 
-st.markdown(
-    """
-    <div class="hero">
-        <div class="brand">
-            <div class="brand-icon">▦</div>
-            <div>
-                <div class="brand-title">QR Code Studio</div>
-                <div class="brand-subtitle">
-                    Create beautiful QR codes in seconds.
-                </div>
-            </div>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<div class="hero">
+
+<h1>QR <span>Studio</span></h1>
+
+<p>
+Create beautiful, customizable QR codes instantly.
+Fast • Professional • Simple
+</p>
+
+</div>
+""", unsafe_allow_html=True)
+
+
+# =========================================================
+# SESSION STATE
+# =========================================================
+
+if "qr_generated" not in st.session_state:
+    st.session_state.qr_generated = False
 
 
 # =========================================================
 # MAIN LAYOUT
 # =========================================================
 
-left, right = st.columns([1, 1.05], gap="large")
+left, right = st.columns([1.05, 0.95], gap="large")
 
 
 # =========================================================
-# LEFT PANEL
+# LEFT SIDE
 # =========================================================
 
 with left:
 
-    st.markdown(
-        """
-        <div class="card">
-            <div class="section-title">Create your QR code</div>
-            <div class="section-subtitle">
-                Choose a QR type and customize your code.
-            </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown("""
+    <div class="card">
+
+    <div class="card-title">
+    ⚙️ QR Code Settings
+    </div>
+
+    """, unsafe_allow_html=True)
 
     qr_type = st.selectbox(
         "QR Code Type",
         [
+            "Website / URL",
             "Text",
-            "Website URL",
-            "Phone Number",
+            "Phone",
             "Email",
             "Wi-Fi",
-            "Contact / vCard",
             "WhatsApp",
-        ],
+            "Contact"
+        ]
     )
 
     values = {}
 
-    if qr_type == "Text":
-        values["text"] = st.text_area(
-            "Enter your text",
-            placeholder="Type any text you want to convert into a QR code...",
-            height=130,
-        )
+    # -----------------------------------------------------
+    # WEBSITE
+    # -----------------------------------------------------
 
-    elif qr_type == "Website URL":
+    if qr_type == "Website / URL":
+
         values["url"] = st.text_input(
             "Website URL",
-            placeholder="https://example.com",
+            placeholder="https://example.com"
         )
 
-    elif qr_type == "Phone Number":
+    # -----------------------------------------------------
+    # TEXT
+    # -----------------------------------------------------
+
+    elif qr_type == "Text":
+
+        values["text"] = st.text_area(
+            "Enter Text",
+            placeholder="Write your text here...",
+            height=130
+        )
+
+    # -----------------------------------------------------
+    # PHONE
+    # -----------------------------------------------------
+
+    elif qr_type == "Phone":
+
         values["phone"] = st.text_input(
             "Phone Number",
-            placeholder="+92 300 1234567",
+            placeholder="+92 300 1234567"
         )
 
+    # -----------------------------------------------------
+    # EMAIL
+    # -----------------------------------------------------
+
     elif qr_type == "Email":
+
         values["email"] = st.text_input(
             "Email Address",
-            placeholder="hello@example.com",
+            placeholder="hello@example.com"
         )
 
         values["subject"] = st.text_input(
             "Subject",
-            placeholder="Email subject",
+            placeholder="Email subject"
         )
 
         values["message"] = st.text_area(
             "Message",
-            placeholder="Write your email message...",
-            height=100,
+            placeholder="Write your message...",
+            height=100
         )
 
+    # -----------------------------------------------------
+    # WIFI
+    # -----------------------------------------------------
+
     elif qr_type == "Wi-Fi":
+
         values["ssid"] = st.text_input(
-            "Wi-Fi Network Name (SSID)",
-            placeholder="My WiFi",
+            "Wi-Fi Network Name",
+            placeholder="My WiFi"
         )
 
         values["wifi_password"] = st.text_input(
             "Wi-Fi Password",
             type="password",
-            placeholder="Enter Wi-Fi password",
+            placeholder="Wi-Fi password"
         )
 
         values["security"] = st.selectbox(
             "Security",
-            ["WPA", "WEP", "None"],
+            ["WPA/WPA2", "WEP", "nopass"]
         )
 
-        values["hidden"] = st.checkbox(
-            "Hidden network",
-            value=False,
-        )
-
-    elif qr_type == "Contact / vCard":
-        values["name"] = st.text_input(
-            "Full Name",
-            placeholder="John Doe",
-        )
-
-        values["contact_phone"] = st.text_input(
-            "Phone Number",
-            placeholder="+92 300 1234567",
-        )
-
-        values["contact_email"] = st.text_input(
-            "Email Address",
-            placeholder="john@example.com",
-        )
-
-        values["organization"] = st.text_input(
-            "Organization",
-            placeholder="Company / School",
-        )
-
-        values["website"] = st.text_input(
-            "Website",
-            placeholder="https://example.com",
-        )
+    # -----------------------------------------------------
+    # WHATSAPP
+    # -----------------------------------------------------
 
     elif qr_type == "WhatsApp":
-        values["whatsapp_phone"] = st.text_input(
+
+        values["whatsapp"] = st.text_input(
             "WhatsApp Number",
-            placeholder="923001234567",
-            help="Use country code without + or spaces.",
+            placeholder="923001234567"
         )
 
         values["whatsapp_message"] = st.text_area(
             "Pre-filled Message",
-            placeholder="Hello! I would like to contact you.",
-            height=100,
+            placeholder="Hello! I would like to contact you."
         )
 
-    st.markdown("### Customize")
+    # -----------------------------------------------------
+    # CONTACT
+    # -----------------------------------------------------
 
-    color_col1, color_col2 = st.columns(2)
+    elif qr_type == "Contact":
 
-    with color_col1:
-        fill_color = st.color_picker(
-            "QR Color",
-            "#111827",
+        values["name"] = st.text_input(
+            "Full Name",
+            placeholder="Muhammad Ali"
         )
 
-    with color_col2:
-        back_color = st.color_picker(
-            "Background",
-            "#FFFFFF",
+        values["contact_phone"] = st.text_input(
+            "Phone Number",
+            placeholder="+92 300 1234567"
         )
 
-    size_col1, size_col2 = st.columns(2)
-
-    with size_col1:
-        box_size = st.slider(
-            "QR Size",
-            min_value=4,
-            max_value=15,
-            value=8,
+        values["contact_email"] = st.text_input(
+            "Email",
+            placeholder="ali@example.com"
         )
 
-    with size_col2:
-        border = st.slider(
-            "Border",
-            min_value=1,
-            max_value=8,
-            value=4,
+        values["company"] = st.text_input(
+            "Company",
+            placeholder="Your Company"
         )
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    # -----------------------------------------------------
+    # COLOR
+    # -----------------------------------------------------
+
+    st.markdown("**🎨 QR Color**")
+
+    qr_color = st.color_picker(
+        "Choose QR color",
+        "#000000"
+    )
+
+    # -----------------------------------------------------
+    # LOGO
+    # -----------------------------------------------------
+
+    st.markdown("**🖼️ Logo**")
 
     logo_file = st.file_uploader(
-        "Add Center Logo (optional)",
+        "Upload logo",
         type=["png", "jpg", "jpeg", "webp"],
+        help="Upload a small logo for the center of your QR code."
     )
+
+    logo = None
+
+    if logo_file:
+        logo = Image.open(logo_file)
+
+    st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+
+        generate = st.button(
+            "✨ Generate QR",
+            type="primary",
+            use_container_width=True
+        )
+
+    with col2:
+
+        reset = st.button(
+            "🧹 Reset",
+            use_container_width=True
+        )
 
     st.markdown("</div>", unsafe_allow_html=True)
 
-    generate = st.container()
-
-    with generate:
-        st.markdown('<div class="generate-btn">', unsafe_allow_html=True)
-
-        generate_clicked = st.button(
-            "Generate QR Code",
-            type="primary",
-            use_container_width=True,
-        )
-
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    clear_clicked = st.button(
-        "Clear / Reset",
-        use_container_width=True,
-    )
-
 
 # =========================================================
-# GENERATE
-# =========================================================
-
-if generate_clicked:
-
-    try:
-        content = build_content(qr_type, values)
-
-        if not content.strip():
-            st.error("Please enter some information first.")
-        else:
-            qr_image = generate_qr(
-                content,
-                fill_color,
-                back_color,
-                box_size,
-                border,
-            )
-
-            qr_image = add_logo(qr_image, logo_file)
-
-            st.session_state.qr_image = qr_image
-            st.session_state.qr_content = content
-            st.session_state.qr_type = qr_type
-
-            history_item = {
-                "type": qr_type,
-                "content": content,
-                "time": datetime.now().strftime("%d %b %Y, %I:%M %p"),
-                "image": image_to_bytes(qr_image),
-            }
-
-            st.session_state.history.insert(0, history_item)
-
-            st.session_state.history = st.session_state.history[:10]
-
-    except Exception as e:
-        st.error(f"Could not generate QR code: {e}")
-
-
-# =========================================================
-# CLEAR
-# =========================================================
-
-if clear_clicked:
-    st.session_state.qr_image = None
-    st.session_state.qr_content = ""
-    st.session_state.qr_type = ""
-
-    st.rerun()
-
-
-# =========================================================
-# RIGHT PANEL
+# RIGHT SIDE
 # =========================================================
 
 with right:
 
-    st.markdown(
-        """
-        <div class="card preview-card">
-            <div class="preview-label">Live QR Preview</div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown("""
+    <div class="card">
 
-    if st.session_state.qr_image is not None:
+    <div class="card-title">
+    👀 Live QR Preview
+    </div>
 
-        st.markdown('<div class="qr-box">', unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
+
+    # Generate
+    if generate:
+
+        data = build_qr_data(qr_type, values)
+
+        if not data.strip():
+
+            st.error("Please enter the required information first.")
+
+        else:
+
+            try:
+
+                qr_image = create_qr(
+                    data=data,
+                    qr_color=qr_color,
+                    logo=logo
+                )
+
+                st.session_state.qr_image = qr_image
+                st.session_state.qr_data = data
+                st.session_state.qr_generated = True
+
+            except Exception as e:
+
+                st.error(f"Unable to generate QR code: {e}")
+
+    # Reset
+    if reset:
+
+        st.session_state.qr_generated = False
+
+        if "qr_image" in st.session_state:
+            del st.session_state.qr_image
+
+        st.rerun()
+
+    # Preview
+    if st.session_state.qr_generated:
+
+        st.markdown(
+            '<div class="preview-box">',
+            unsafe_allow_html=True
+        )
 
         st.image(
             st.session_state.qr_image,
-            width=330,
+            width=350
         )
 
-        st.markdown("</div>", unsafe_allow_html=True)
+        st.markdown(
+            "</div>",
+            unsafe_allow_html=True
+        )
+
+        st.markdown(
+            """
+            <div class="preview-caption">
+            Your QR code is ready to scan
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
         st.markdown("<br>", unsafe_allow_html=True)
+
+        png_bytes = image_to_bytes(
+            st.session_state.qr_image
+        )
 
         st.download_button(
-            label="Download QR Code as PNG",
-            data=image_to_bytes(st.session_state.qr_image),
-            file_name="qr_code_studio.png",
+            label="📥 Download QR as PNG",
+            data=png_bytes,
+            file_name="qr_studio.png",
             mime="image/png",
-            use_container_width=True,
+            use_container_width=True
         )
-
-        st.markdown("<br>", unsafe_allow_html=True)
-
-        copy_col, info_col = st.columns([1, 1])
-
-        with copy_col:
-            st.code(
-                st.session_state.qr_content,
-                language=None,
-            )
-
-        with info_col:
-            st.markdown(
-                f"""
-                <div class="stat">
-                    <div class="stat-number">
-                        {st.session_state.qr_type}
-                    </div>
-                    <div class="stat-label">
-                        QR Code Type
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
 
     else:
 
         st.markdown(
             """
-            <div class="empty-preview">
-                <div>
-                    <div class="empty-preview-icon">▦</div>
-                    <strong>Your QR code will appear here</strong>
-                    <br>
-                    <span>
-                        Enter your content and click Generate QR Code.
-                    </span>
-                </div>
+            <div class="preview-box">
+
+            <div style="
+                text-align:center;
+                color:#555;
+                width:100%;
+            ">
+
+            <div style="font-size:70px;">
+            🔳
+            </div>
+
+            <div style="
+                font-size:18px;
+                font-weight:700;
+                color:#333;
+                margin-top:10px;
+            ">
+            Your QR code will appear here
+            </div>
+
+            <div style="
+                font-size:13px;
+                color:#777;
+                margin-top:8px;
+            ">
+            Enter your information and click Generate QR
+            </div>
+
+            </div>
+
             </div>
             """,
-            unsafe_allow_html=True,
+            unsafe_allow_html=True
         )
 
     st.markdown("</div>", unsafe_allow_html=True)
@@ -804,109 +718,53 @@ with right:
 # FEATURES
 # =========================================================
 
-st.markdown("##")
+st.markdown("<br>", unsafe_allow_html=True)
 
-feature_cols = st.columns(4)
+f1, f2, f3, f4 = st.columns(4)
 
-features = [
-    ("⚡", "Instant Generation", "Create QR codes in seconds."),
-    ("🎨", "Custom Styling", "Choose colors, size and border."),
-    ("🖼️", "Logo Support", "Add your brand logo in the center."),
-    ("📱", "Mobile Friendly", "Works beautifully on all screens."),
-]
-
-for col, feature in zip(feature_cols, features):
-    with col:
-        st.markdown(
-            f"""
-            <div class="feature-card">
-                <div class="feature-icon">{feature[0]}</div>
-                <div class="feature-title">{feature[1]}</div>
-                <div class="feature-text">{feature[2]}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-
-# =========================================================
-# HISTORY
-# =========================================================
-
-st.markdown("##")
-
-st.markdown(
-    """
-    <div class="section-title">Recent QR Codes</div>
-    <div class="section-subtitle">
-        Your recently generated QR codes are shown here.
+with f1:
+    st.markdown("""
+    <div class="card" style="text-align:center;">
+    <div style="font-size:30px;">⚡</div>
+    <b>Instant Generate</b>
+    <div class="small-text">Create QR codes instantly</div>
     </div>
-    """,
-    unsafe_allow_html=True,
-)
+    """, unsafe_allow_html=True)
 
-if st.session_state.history:
+with f2:
+    st.markdown("""
+    <div class="card" style="text-align:center;">
+    <div style="font-size:30px;">🎨</div>
+    <b>Custom Colors</b>
+    <div class="small-text">Choose your QR color</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    for index, item in enumerate(st.session_state.history):
+with f3:
+    st.markdown("""
+    <div class="card" style="text-align:center;">
+    <div style="font-size:30px;">🖼️</div>
+    <b>Logo Support</b>
+    <div class="small-text">Add your own logo</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-        history_col1, history_col2, history_col3 = st.columns(
-            [0.15, 0.60, 0.25]
-        )
-
-        with history_col1:
-            st.image(
-                item["image"],
-                width=70,
-            )
-
-        with history_col2:
-            st.markdown(
-                f"""
-                <div class="history-card">
-                    <div class="history-type">
-                        {item["type"]}
-                    </div>
-                    <div class="history-content">
-                        {item["content"][:100]}
-                        {"..." if len(item["content"]) > 100 else ""}
-                    </div>
-                    <div class="history-time">
-                        {item["time"]}
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-        with history_col3:
-            st.download_button(
-                "Download",
-                data=item["image"],
-                file_name=f"qr_code_{index + 1}.png",
-                mime="image/png",
-                key=f"history_download_{index}",
-                use_container_width=True,
-            )
-
-else:
-
-    st.info("No QR codes generated yet. Create your first QR code above.")
+with f4:
+    st.markdown("""
+    <div class="card" style="text-align:center;">
+    <div style="font-size:30px;">📥</div>
+    <b>PNG Download</b>
+    <div class="small-text">Download high-quality QR</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # =========================================================
 # FOOTER
 # =========================================================
 
-st.markdown(
-    """
-    <div style="
-        text-align:center;
-        color:#98a2b3;
-        font-size:12px;
-        padding:35px 0 20px 0;
-    ">
-        QR Code Studio • Create • Customize • Share
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+st.markdown("""
+<div class="footer">
+QR Studio • Professional QR Code Generator
+</div>
+""", unsafe_allow_html=True)
